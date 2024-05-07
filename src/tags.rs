@@ -1,27 +1,8 @@
-#![allow(dead_code, unused_imports)]
+use std::str::FromStr;
 
-use datetime::{LocalDate, Month};
-use std::{
-    fmt::{Display, Write},
-    str::FromStr,
-};
+use crate::Fields;
 
-// Commonly used tags
-//    Title,
-//    Version,
-//    Artist,
-//    Album,
-//    Date,
-//    Genre,
-//    TrackNumber,
-//    DiscNumber,
-//    Comment,
-//    Band,
-//    AlbumArtist,
-//    Composer,
-
-// Source document: https://www.xiph.org/vorbis/doc/v-comment.html
-#[derive(Debug, Hash, PartialEq, Eq, strum_macros::EnumIter)]
+#[derive(Hash, Debug, Clone, Copy)]
 pub enum FlacTags {
     Title,
     Version,
@@ -38,7 +19,51 @@ pub enum FlacTags {
     Location,
     Contact,
     Isrc,
-    Other(String),
+}
+impl FlacTags {
+    pub fn from_args(f: Fields) -> Vec<(FlacTags, Vec<String>)> {
+        let mut vec = Vec::new();
+        use FlacTags::*;
+
+        field!(vec, f.title, Title);
+        field!(vec, f.version, Version);
+        field!(vec, f.album, Album);
+        field!(vec, f.tracknumber, Tracknumber);
+        field!(vec, f.artist, Artist);
+        field!(vec, f.performer, Performer);
+        field!(vec, f.copyright, Copyright);
+        field!(vec, f.license, License);
+        field!(vec, f.organization, Organization);
+        field!(vec, f.description, Description);
+        field!(vec, f.genre, Genre);
+        field!(vec, f.date, Date);
+        field!(vec, f.location, Location);
+        field!(vec, f.contact, Contact);
+        field!(vec, f.isrc, Isrc);
+
+        vec
+    }
+
+    pub fn as_str(&self) -> &str {
+        use FlacTags::*;
+        match self {
+            Title => "TITLE",
+            Version => "VERSION",
+            Album => "ALBUM",
+            Tracknumber => "TRACKNUMBER",
+            Artist => "ARTIST",
+            Performer => "PERFORMER",
+            Copyright => "COPYRIGHT",
+            License => "LICENSE",
+            Organization => "ORGANIZATION",
+            Description => "DESCRIPTION",
+            Genre => "GENRE",
+            Date => "DATE",
+            Location => "LOCATION",
+            Contact => "CONTACT",
+            Isrc => "ISRC",
+        }
+    }
 }
 impl FromStr for FlacTags {
     type Err = String;
@@ -56,7 +81,7 @@ impl FromStr for FlacTags {
             } else {
                 Ok(())
             }
-        });
+        })?;
 
         // map to enum variant
         Ok(match s.as_str() {
@@ -75,16 +100,8 @@ impl FromStr for FlacTags {
             "LOCATION" => Location,
             "CONTACT" => Contact,
             "ISRC" => Isrc,
-            _ => Other(s),
+            _ => Err(s)?,
         })
-    }
-}
-impl Display for FlacTags {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let uppercase = format!("{self:?}").to_uppercase();
-        f.write_str(&uppercase)?;
-
-        todo!()
     }
 }
 

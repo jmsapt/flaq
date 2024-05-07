@@ -1,20 +1,11 @@
 #![allow(dead_code)]
-
-// include!("src/cli.rs");
-
-use clap::{CommandFactory, ValueEnum};
-use std::ffi::OsString;
-use std::fs;
-
-use clap_complete::{generate_to, Shell};
-use std::env;
-use std::io::Error;
-
-include!("src/cli.rs");
 const BINARY_NAME: &str = "flaq";
+include!("src/cli.rs");
 
-fn main() -> Result<(), Error> {
-    let outdir = match env::var_os("OUT_DIR") {
+fn main() -> Result<(), std::io::Error> {
+    use clap::{CommandFactory, ValueEnum};
+    use clap_complete::{generate_to, Shell};
+    let outdir = match std::env::var_os("OUT_DIR") {
         None => return Ok(()),
         Some(outdir) => outdir,
     };
@@ -23,7 +14,14 @@ fn main() -> Result<(), Error> {
     for &shell in Shell::value_variants() {
         let file = generate_to(shell, &mut cmd, BINARY_NAME, &outdir)?;
 
-        println!("cargo::warning=generate completion file at {file:?}")
+        // source bash autocomplete for testing
+        #[cfg(debug_assertions)]
+        {
+            if shell == Shell::Bash {
+                println!("source {file:?}");
+                println!("cargo::warning=File {file:?} was source to shell (sources autocompletes for testing)");
+            }
+        }
     }
 
     Ok(())
