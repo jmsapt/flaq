@@ -1,0 +1,20 @@
+// speacial tags don't need to be escaped
+char = {
+    !("\"" | "\\" | ":") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t" | ":")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+inner = @{ char+ }
+literal = @{ (!(WHITE_SPACE | ":" | "," | "(" | ")") ~ char)+}
+string = ${ PATTERN_WHITE_SPACE* ~ (("\"" ~ inner ~ "\"") | literal) ~ PATTERN_WHITE_SPACE* }
+string_list = _{ 
+  PATTERN_WHITE_SPACE* ~ 
+  "(" ~ (string ~ ",")* ~ string? ~ ")" 
+  ~ PATTERN_WHITE_SPACE*
+}
+value = { (string_list | string) }
+
+key_value = { string ~ ":" ~ value }
+
+tags = {  key_value*  }
+
