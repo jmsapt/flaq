@@ -1,5 +1,7 @@
 [package]
 name = "flaq"
+description = "A simple CLI tool for modifying and querying metadata tags for `.flac` files."
+liscense = "MIT"
 version = "0.2.0"
 edition = "2021"
 
