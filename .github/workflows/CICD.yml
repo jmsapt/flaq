@@ -10,14 +10,17 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+
   setup:
     name: Setup
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
       - name: Prepare Cache
         uses: actions/cache@v4
-        uses: actions/cache@v4
+
         with:
           path: |
             ~/.cargo/bin/
@@ -38,6 +41,7 @@ jobs:
 
   test:
     name: Test
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,22 +55,20 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ os-runner }}-cargo-cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Run Tests (using tarpaulin)
         run: cargo test
-
+        
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          coverage:
-            name: Test Coverage
-            steps:
 
   lint:
     name: Clippy Check
-    -steps:
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -79,7 +81,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ os-runner }}-cargo-cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
       
       - name: Run Clippy
         run: cargo clippy --all-targets --all-features
