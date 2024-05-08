@@ -6,10 +6,33 @@
 
 
 ## Installation
+### Cargo Install
+The crates.io listing can be found [here](https://crates.io/crates/flaq).
+
+Installation with `cargo` is shown below. 
+```
+cargo install flaq
+```
+
+
+Please not that the `cargo` install doesn't comes with the autocompletion
+scripts, so shell autocompletion will not work unless you manually copy the scripts into the respective `/usr/share/`
+directories.
+
+### Arch Linux AUR
+The AUR listing can be found [here](https://aur.archlinux.org/packages/flaq).
+
+Installation with `yay` is shown below. If you are using `paru` simply substitute `paru` for `yay`.
+```
+yay -S flaq
+```
+
 
 ## Usage
 
+
 ## Queries
+Coming soon...
 
 ## The Standard
 The standard, listed below, is not super rigid with room for ambiguity. This program follow this standard
