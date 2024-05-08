@@ -2,7 +2,7 @@ name: Flaq CI/CD
 
 on:
   push:
-    branches: [ "master", "update-readme" ]
+    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
