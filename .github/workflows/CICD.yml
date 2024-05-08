@@ -53,6 +53,7 @@ jobs:
 
       - uses: actions-rs/tarpaulin@v0.1
         with:
+          version: 0.20.0
           args: --all-features
 
       - name: Upload to codecov.io
