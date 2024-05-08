@@ -1,4 +1,9 @@
 # Flaq
+[![Build Status](https://github.com/mozilla/grcov/actions/workflows/CICD.yml/badge.svg?branch=master)](https://github.com/mozilla/grcov/actions/workflows/CICD.yml)
+[![codecov](https://codecov.io/gh/mozilla/grcov/branch/master/graph/badge.svg)](https://codecov.io/gh/mozilla/grcov)
+[![crates.io](https://img.shields.io/crates/v/grcov.svg)](https://crates.io/crates/flaq)
+
+## Contents
 - [Installation](#Installation)
 - [Usage](#Usage)
 - [Queries](#Queries)
@@ -10,7 +15,7 @@
 The crates.io listing can be found [here](https://crates.io/crates/flaq).
 
 Installation with `cargo` is shown below. 
-```
+```bash
 cargo install flaq
 ```
 
@@ -23,13 +28,66 @@ directories.
 The AUR listing can be found [here](https://aur.archlinux.org/packages/flaq).
 
 Installation with `yay` is shown below. If you are using `paru` simply substitute `paru` for `yay`.
-```
+```bash
 yay -S flaq
 ```
 
 
 ## Usage
+Below is the short help detailing the usage (accessible via `flaq -h`). For detailed help run `flac --help`.
+```
+A CLI tool for editing and query `.flac` files metadata tags
 
+Usage: flaq [OPTIONS]
+
+Options:
+  -v, --version-number  Print version
+  -c, --clean           Clean duplicated fields, where both the tag field and value match
+      --clean-all       [Caution] Clean duplicated fields, and deletes ALL non-standard header comments
+      --set             [Default] Set field to new given values. Previous values are deleted
+      --append          Append flag. If set appends values leaving existing values untouched
+      --delete          Deletes associated values for provided fields, leaving the field unset
+  -L, --list-detailed   Provides a formated list of all tags associated with each matching file
+  -l, --list            Provides a machine readable listing of matching files
+      --dry-run         Performs the modification, ready for previewing, without saving/commiting the change
+  -h, --help            Print help (see more with '--help')
+
+Tag Fields:
+  -t, --title [<TITLE>...]
+          Track/Work name
+      --song-version [<VERSION>...]
+          Recording version (e.g. remix info)
+  -A, --album [<ALBUM>...]
+          The collection name to which this track belongs
+  -n, --tracknumber [<TRACKNUMBER>...]
+          The track number of this piece if part of a specific larger collection or album
+  -a, --artist [<ARTIST>...]
+          The artist generally considered responsible for the work
+      --performer [<PERFORMER>...]
+          The artist(s) who performed the work
+      --copyright [<COPYRIGHT>...]
+          Copyright attribution, e.g., '2001 Nobody's Band' or '1999 Jack Moffitt'
+      --license [<LICENSE>...]
+          License information, for example, 'All Rights Reserved'
+  -o, --organization [<ORGANIZATION>...]
+          Name of the organization producing the track (i.e. the 'record label')
+      --description [<DESCRIPTION>...]
+          A short text description of the contents
+  -g, --genre [<GENRE>...]
+          A short text indication of music genre
+  -d, --date [<DATE>...]
+          Date the track was recorded
+      --location [<LOCATION>...]
+          Location where track was recorded
+      --contact [<CONTACT>...]
+          Contact information for the creators or distributors of the track
+      --isrc [<ISRC>...]
+          ISRC number for the track
+
+Arguments:
+  -q, --query <QUERY>
+  -f, --files [<FILES>...]
+```
 
 ## Queries
 Coming soon...
