@@ -2,9 +2,8 @@ use clap::{Args, Parser};
 
 #[derive(Parser, Debug)]
 #[clap(
-    // override_usage = "flaq [FLAGS] [OPTIONS] [ARGUMENTS]",
-    about = "Short about - ToDO",
-    long_about = "TODO",
+    about = "A CLI tool for editing and query `.flac` files metadata tags",
+    // long_about = "TODO",
     version,
     author = "James Appleton",
     disable_version_flag = true,
@@ -39,15 +38,17 @@ pub struct CliArgs {
     #[clap(long, conflicts_with_all = &["append", "set"], action)]
     pub delete: bool,
 
-    /// Deletes associated values for provided fields, leaving the field unset.
+    /// Provides a formated list of all tags associated with each matching file.
     #[clap(long, short = 'L', conflicts_with_all = &["list"], action)]
     pub list_detailed: bool,
 
-    /// Deletes associated values for provided fields, leaving the field unset.
+    /// Provides a machine readable listing of matching files.
+    ///
+    /// Files are only newline seperated.
     #[clap(long, short = 'l', conflicts_with_all = &["list_detailed"], action)]
     pub list: bool,
 
-    /// Deletes associated values for provided fields, leaving the field unset.
+    /// Performs the modification, ready for previewing, without saving/commiting the change.
     #[clap(long, action)]
     pub dry_run: bool,
 
