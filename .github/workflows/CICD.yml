@@ -11,7 +11,6 @@ env:
 
 jobs:
   setup:
-    if: false # renable if needed
     name: Setup
     runs-on: ubuntu-latest
     steps:
@@ -53,9 +52,7 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: '0.20.0'
+        run: cargo tarpaulin -- --out Xml
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1.0.2
