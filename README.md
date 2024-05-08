@@ -1,6 +1,6 @@
 # Flaq
-[![Build Status](https://github.com/mozilla/grcov/actions/workflows/CICD.yml/badge.svg?branch=master)](https://github.com/mozilla/grcov/actions/workflows/CICD.yml)
-[![codecov](https://codecov.io/gh/mozilla/grcov/branch/master/graph/badge.svg)](https://codecov.io/gh/mozilla/grcov)
+[![Build Status](https://github.com/mozilla/grcov/actions/workflows/CICD.yml/badge.svg?branch=master)](https://github.com/jmsapt/flaq/actions/workflows/CICD.yml)
+[![codecov](https://codecov.io/gh/mozilla/grcov/branch/master/graph/badge.svg)](https://codecov.io/gh/jmsapt/flaq)
 [![crates.io](https://img.shields.io/crates/v/grcov.svg)](https://crates.io/crates/flaq)
 
 ## Contents
