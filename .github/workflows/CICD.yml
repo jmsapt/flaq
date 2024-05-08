@@ -10,30 +10,29 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  setup:
-    name: Setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # setup:
+  #   name: Setup
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
         
-      - name: Prepare Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+  #     - name: Prepare Cache
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           target/
+  #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
           
-      - name: Install cargo tarpaulin
-        run: cargo install cargo-tarpaulin
+  #     - name: Install cargo tarpaulin
+  #       run: cargo install cargo-tarpaulin
 
   test:
     name: Test
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -52,8 +51,9 @@ jobs:
             target/
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
 
-      - name: Run cargo-tarpaulin
-        run: cargo tarpaulin -- --out Xml
+      - uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: --all-features
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1.0.2
