@@ -1,16 +1,18 @@
 use crate::tags::FlacTags;
+use datetime::{LocalDate, Year, YearMonth};
 use pest::iterators::Pairs;
 use pest::pratt_parser::PrattParser;
 use pest::Parser;
 use std::{
     io::{self, BufRead},
     num::ParseIntError,
+    primitive,
 };
 use thiserror::Error;
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Error, Debug)]
-enum QueryErrors {
+enum QueryParseError {
     #[error("Expr::parse expected atom, found `{0}`")]
     AtomError(String),
     #[error("Expr::parse expected infix operation, found `{0}`")]
@@ -19,6 +21,16 @@ enum QueryErrors {
     PrefixError,
     #[error("`{0}` could not be parsed as u32")]
     IntegerError(String),
+}
+
+#[derive(Error, Debug)]
+enum QueryEvalError {
+    #[error("Cannot apply logic NOT (!) to type: {0}")]
+    InvalidNot(String),
+    #[error("Mismatching types cannot be compared: `{0}` and `{0}`")]
+    MismatchingTypes(String, String),
+    #[error("Invalid String operation: `{0}`")]
+    StringOperation(String),
 }
 
 #[derive(pest_derive::Parser)]
@@ -48,6 +60,44 @@ enum BinaryOperator {
     And,
     Or,
 }
+impl BinaryOperator {
+    fn eval(&self, lhs: Expr, rhs: Expr) -> Result<bool, QueryEvalError> {
+        let lhs_val = lhs.eval()?;
+        let rhs_val = rhs.eval()?;
+
+        match (lhs_val, self, rhs_val) {
+            // Strings
+            (Expr::String(a), Self::Equals, Expr::String(b)) => todo!(),
+            (Expr::String(a), Self::NotEquals, Expr::String(b)) => todo!(),
+            (Expr::String(a), _, Expr::String(b)) => todo!(),
+            // Boolean
+            (Expr::Boolean(a), _, Expr::Boolean(b)) => todo!(),
+            (Expr::Boolean(a), _, Expr::Boolean(b)) => todo!(),
+            (Expr::Boolean(a), _, Expr::Boolean(b)) => todo!(),
+            // Dates
+            (Expr::Date(a), Self::Equals, Expr::Date(b)) => todo!(),
+            (Expr::Date(a), Self::NotEquals, Expr::Date(b)) => todo!(),
+            (Expr::Date(a), Self::Greater, Expr::Date(b)) => todo!(),
+            (Expr::Date(a), Self::GreaterEq, Expr::Date(b)) => todo!(),
+            (Expr::Date(a), Self::Less, Expr::Date(b)) => todo!(),
+            (Expr::Date(a), Self::LessEq, Expr::Date(b)) => todo!(),
+            (Expr::Date(a), _, Expr::Date(b)) => todo!(),
+            // Integer
+            (Expr::Integer(a), Self::Equals, Expr::Integer(b)) => todo!(),
+            (Expr::Integer(a), Self::NotEquals, Expr::Integer(b)) => todo!(),
+            (Expr::Integer(a), Self::Greater, Expr::Integer(b)) => todo!(),
+            (Expr::Integer(a), Self::GreaterEq, Expr::Integer(b)) => todo!(),
+            (Expr::Integer(a), Self::Less, Expr::Integer(b)) => todo!(),
+            (Expr::Integer(a), Self::LessEq, Expr::Integer(b)) => todo!(),
+            (Expr::Integer(a), _, Expr::Integer(b)) => todo!(),
+            // Type mistmatch
+            (a, _, b) => Err(QueryEvalError::MismatchingTypes(
+                format!("{a:?}"),
+                format!("{b:?}"),
+            )),
+        }
+    }
+}
 
 #[derive(Debug)]
 enum Expr {
@@ -58,27 +108,26 @@ enum Expr {
         rhs: Box<Expr>,
     },
     Not(Box<Expr>),
-
-    // Literals
+    Boolean(bool),
     Date(Date),
     Integer(u32),
     String(String),
     Tag(FlacTags),
 }
 impl Expr {
-    pub fn build(pairs: Pairs<Rule>) -> Result<Self, QueryErrors> {
+    pub fn build(pairs: Pairs<Rule>) -> Result<Self, QueryParseError> {
         let query = PRATT_PARSER
             .map_primary(|p| {
-                Ok::<Expr, QueryErrors>(match p.as_rule() {
+                Ok::<Expr, QueryParseError>(match p.as_rule() {
                     Rule::date => todo!(),
                     Rule::string => todo!(),
                     Rule::integer => Expr::Integer(
                         p.as_str()
                             .parse()
-                            .map_err(|_| QueryErrors::IntegerError(p.as_str().into()))?,
+                            .map_err(|_| QueryParseError::IntegerError(p.as_str().into()))?,
                     ),
                     Rule::expr => Expr::build(p.into_inner())?,
-                    _ => Err(QueryErrors::AtomError(p.as_str().into()))?,
+                    _ => Err(QueryParseError::AtomError(p.as_str().into()))?,
                 })
             })
             .map_infix(|lhs, op, rhs| {
@@ -91,7 +140,7 @@ impl Expr {
                     Rule::less_eq => BinaryOperator::LessEq,
                     Rule::and => BinaryOperator::And,
                     Rule::or => BinaryOperator::Or,
-                    rule => Err(QueryErrors::InifixError(op.as_str().into()))?,
+                    rule => Err(QueryParseError::InifixError(op.as_str().into()))?,
                 };
 
                 Ok(Expr::BinOp {
@@ -103,22 +152,28 @@ impl Expr {
             .map_prefix(|op, rhs| {
                 Ok(match op.as_rule() {
                     Rule::not => Expr::Not(Box::new(rhs?)),
-                    _ => Err(QueryErrors::PrefixError)?,
+                    _ => Err(QueryParseError::PrefixError)?,
                 })
             })
             .parse(pairs);
         todo!()
     }
 
-    fn evaluate() -> bool {
-        //
-        todo!()
+    pub fn eval(self) -> Result<Expr, QueryEvalError> {
+        Ok(match self {
+            Expr::BinOp { lhs, op, rhs } => Expr::Boolean(op.eval(*lhs, *rhs)?),
+            Expr::Not(operand) => match operand.eval()? {
+                Expr::Boolean(b) => Expr::Boolean(!b),
+                p => Err(QueryEvalError::InvalidNot(format!("{p:?}")))?,
+            },
+            p => p,
+        })
     }
 }
 
 #[derive(Debug)]
 enum Date {
-    Year,
-    YearMonth,
-    YearMonthDay,
+    Year(Year),
+    YearMonth(YearMonth),
+    YearMonthDay(LocalDate),
 }
