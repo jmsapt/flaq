@@ -7,6 +7,7 @@ use colored::Colorize;
 use itertools::Itertools;
 use metaflac::block::VorbisComment;
 use metaflac::Tag;
+use query::Expr;
 use std::clone;
 use std::collections::{HashSet, VecDeque};
 use std::error::Error;
@@ -28,9 +29,13 @@ use tags::FlacTags;
 fn main() -> Result<(), Box<dyn Error>> {
     let args = CliArgs::parse();
     let tasks = FlacTags::from_args(args.fields);
-
-    // TODO: handle query
     let files = args.arguments.files;
+
+    // handle query
+    if let Some(query) = args.arguments.query {
+        let grammer = Expr::parse_grammer(&query)?;
+        Expr
+    }
 
     if let Some(files) = files {
         // open meta data files
