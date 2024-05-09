@@ -51,7 +51,6 @@ pub enum QueryEvalError {
     BooleanOperation(String),
     #[error("Expression must evaluate to a boolean")]
     BadEvaluation,
-
     #[error("Tag cannot be compared as it is not set: {0}")]
     TagNotSet(String),
 }
@@ -81,11 +80,14 @@ impl BinaryOperator {
     fn eval(&self, lhs: Value, rhs: Value) -> Result<bool, QueryEvalError> {
         Ok(match (lhs, self, rhs) {
             // Strings
-            (Value::String(a), Self::Equals, Value::String(b)) => a == b,
-            (Value::String(a), Self::NotEquals, Value::String(b)) => a != b,
-            (Value::String(a), Self::Contains, Value::String(b)) => {
-                a.iter().any(|x| b.iter().any(|y| x.contains(y)))
+            (Value::String(a), Self::Equals, Value::String(b)) => {
+                a.iter().any(|x| b.iter().any(|y| x == y))
             }
+            (Value::String(a), Self::NotEquals, Value::String(b)) => a != b,
+            (Value::String(a), Self::Contains, Value::String(b)) => a.iter().any(|x| {
+                b.iter()
+                    .any(|y| x.to_lowercase().contains(y.to_lowercase().as_str()))
+            }),
             (Value::String(a), op, Value::String(b)) => {
                 Err(QueryEvalError::StringOperation(format!("{op:?}")))?
             }
@@ -136,7 +138,7 @@ pub enum Expr {
     Value(Value),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Value {
     Boolean(bool),
     Date(Date),
@@ -150,7 +152,13 @@ pub fn build(pairs: Pairs<Rule>) -> Result<Expr, QueryParseError> {
         .map_primary(|p| {
             Ok::<Expr, QueryParseError>(match p.as_rule() {
                 Rule::date => Expr::Value(Value::Date(Date::from_str(p.as_str())?)),
-                Rule::string => Expr::Value(Value::String(vec![p.as_str().to_string()])),
+                Rule::string => Expr::Value(Value::String(vec![p
+                    .as_str()
+                    .strip_prefix('\"')
+                    .unwrap()
+                    .strip_suffix('\"')
+                    .unwrap()
+                    .to_string()])),
                 Rule::integer => Expr::Value(Value::Integer(
                     p.as_str()
                         .parse()
@@ -241,9 +249,23 @@ impl Expr {
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum Date {
-    Year(i64),
-    YearMonth(i64, u8),
-    YearMonthDay(i64, u8, u8),
+    Year(u32),
+    YearMonth(u32, u8),
+    YearMonthDay(u32, u8, u8),
+}
+impl From<u32> for Date {
+    fn from(value: u32) -> Self {
+        Date::Year(value)
+    }
+}
+impl From<Date> for u32 {
+    fn from(value: Date) -> Self {
+        match value {
+            Date::Year(year) => year,
+            Date::YearMonth(year, _) => year,
+            Date::YearMonthDay(year, _, _) => year,
+        }
+    }
 }
 impl FromStr for Date {
     type Err = QueryParseError;

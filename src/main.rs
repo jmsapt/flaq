@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(query_str) = args.arguments.query {
         // build expression
         let grammer = QueryParser::parse_grammer(&query_str)?;
-        let expression = build(grammer)?;
+        let expression = dbg!(build(grammer)?);
 
         // evaulate against all files recursively
         let mut buffer = Vec::new();
