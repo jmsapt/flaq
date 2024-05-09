@@ -211,6 +211,7 @@ dependencies = [
  "colorize",
  "datetime",
  "itertools",
+ "lazy_static",
  "metaflac",
  "pest",
  "pest_consume",
