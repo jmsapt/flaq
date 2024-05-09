@@ -1,0 +1,78 @@
+/* String pattern (from pest book) */
+char = {
+    !("\"" | "\\" | ":") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t" | ":")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+inner = @{ char+ }
+string = ${ "\"" ~ inner ~ "\"" }
+
+
+/* Int Pattern */
+integer = @{  ASCII_DIGIT+  }
+
+
+/* Date Patterns */
+year = @{ ASCII_DIGIT{1, 4} }
+month = @{ ASCII_DIGIT? ~ ASCII_DIGIT}
+day = @{ ASCII_DIGIT? ~ ASCII_DIGIT }
+
+yyyy = @{ year }
+yyyy_mm = @{ year ~ "-" ~ month }
+yyyy_mm_dd = @{ year ~ "-" ~ month ~ "-" ~ day }
+
+date = ${ yyyy | yyyy_mm | yyyy_mm_dd }
+
+
+/* Tag Patterns */
+tag = @{
+    PATTERN_WHITE_SPACE* ~
+    ^"title" |
+    ^"version" |
+    ^"album" |
+    ^"tracknumber" |
+    ^"artist" |
+    ^"performer" |
+    ^"copyright" |
+    ^"license" |
+    ^"organization" |
+    ^"description" |
+    ^"genre" |
+    ^"date" |
+    ^"location" |
+    ^"contact" |
+    ^"isrc" ~
+    PATTERN_WHITE_SPACE*
+}
+
+
+/* expression operators */
+primary = _{ integer | string | date | tag | ( "(" ~ expr ~ ")" )}
+atom = _{ not? ~ primary }
+expr = { PATTERN_WHITE_SPACE* ~ atom ~ (PATTERN_WHITE_SPACE* ~ binary_op ~ PATTERN_WHITE_SPACE* ~ atom)* ~ PATTERN_WHITE_SPACE* }
+
+binary_op = _{ 
+    equals | not_equals | contains | greater | greater_eq | less | less_eq
+    | and 
+    | or
+}
+// 0th order (indivisible)
+not = { "!"}
+
+// 1st order precedence
+equals = { "==" }
+not_equals = { "!=" }
+contains = { "?=" }
+greater = { ">" }
+greater_eq = { ">=" }
+less = { "<" }
+less_eq = { "<=" }
+
+// 2nd order precedence
+and = { "&&" }
+
+// 3rd order precedence
+or = { "||" }
+
+/* Query */
+query = _{ SOI ~ expr ~ EOI }
