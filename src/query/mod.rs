@@ -51,6 +51,9 @@ pub enum QueryEvalError {
     BooleanOperation(String),
     #[error("Expression must evaluate to a boolean")]
     BadEvaluation,
+
+    #[error("Tag cannot be compared as it is not set: {0}")]
+    TagNotSet(String),
 }
 
 #[derive(pest_derive::Parser)]
@@ -153,6 +156,9 @@ pub fn build(pairs: Pairs<Rule>) -> Result<Expr, QueryParseError> {
                         .parse()
                         .map_err(|_| QueryParseError::IntegerError(p.as_str().into()))?,
                 )),
+                Rule::tag => Expr::Value(Value::Tag(
+                    FlacTags::from_str(p.as_str()).expect("Tag validated by pest grammar already"),
+                )),
                 Rule::expr => build(p.into_inner())?,
                 _ => Err(QueryParseError::AtomError(p.as_str().into()))?,
             })
@@ -187,7 +193,7 @@ pub fn build(pairs: Pairs<Rule>) -> Result<Expr, QueryParseError> {
 
 impl Expr {
     pub fn eval(&self, env: &VorbisComment) -> Result<Value, QueryEvalError> {
-        match self {
+        Ok(match self {
             Self::BinOp { lhs, op, rhs } => {
                 Value::Boolean(op.eval(lhs.eval(env)?, rhs.eval(env)?)?)
             }
@@ -200,19 +206,36 @@ impl Expr {
             }
             Self::Value(v) => match v {
                 Value::Tag(t) => match t {
-                    FlacTags::Date => todo!(),
-                    FlacTags::Tracknumber => todo!(),
+                    FlacTags::Date => Value::Date(
+                        Date::from_str(
+                            env.get(t.as_str())
+                                .ok_or(QueryEvalError::TagNotSet(format!("{t:?}")))?
+                                .iter()
+                                .next()
+                                .ok_or(QueryEvalError::TagNotSet(format!("{t:?}")))?
+                                .as_str(),
+                        )
+                        .map_err(|_| QueryEvalError::DateOperation(format!("{t:?}")))?,
+                    ),
+                    FlacTags::Tracknumber => Value::Integer(
+                        env.get(t.as_str())
+                            .ok_or(QueryEvalError::TagNotSet(format!("{t:?}")))?
+                            .iter()
+                            .next()
+                            .ok_or(QueryEvalError::TagNotSet(format!("{t:?}")))?
+                            .as_str()
+                            .parse()
+                            .map_err(|_| QueryEvalError::IntegerOperation(format!("{t:?}")))?,
+                    ),
                     _ => Value::String(
                         env.get(t.as_str())
                             .map(|v| v.to_owned())
-                            .unwrap_or_else(|| Vec::new()),
+                            .ok_or(QueryEvalError::TagNotSet(format!("{t:?}")))?,
                     ),
                 },
                 _ => v.clone(),
             },
-        };
-
-        todo!()
+        })
     }
 }
 
@@ -225,7 +248,7 @@ pub enum Date {
 impl FromStr for Date {
     type Err = QueryParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut x = s.split("-");
+        let mut x = s.split('-');
 
         let y = x.next().map(|y| {
             y.parse()

@@ -34,9 +34,11 @@ lazy_static::lazy_static! {
         use pest::pratt_parser::{Assoc::*, Op};
 
         PrattParser::new()
-            // .op(Op::infix(Rule::or, Left))
-            .op(Op::infix(Rule::and, Left))
-            // .op(Op::prefix(Rule::not, Left))
+            .op(Op::infix(Rule::or, Left))
+            .op(Op::infix(Rule::and, Left) | Op::infix(Rule::equals, Left) | Op::infix(Rule::not_equals, Left)
+                | Op::infix(Rule::contains, Left)| Op::infix(Rule::greater, Left)| Op::infix(Rule::greater_eq, Left)
+                | Op::infix(Rule::less, Left)| Op::infix(Rule::less_eq, Left))
+            .op(Op::prefix(Rule::not))
     };
 }
 

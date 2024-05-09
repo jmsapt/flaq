@@ -17,11 +17,11 @@ year = @{ ASCII_DIGIT{1, 4} }
 month = @{ ASCII_DIGIT? ~ ASCII_DIGIT}
 day = @{ ASCII_DIGIT? ~ ASCII_DIGIT }
 
-yyyy = ${ year }
-yyyy_mm = ${ year ~ "-" ~ month }
-yyyy_mm_dd = ${ year ~ "-" ~ month ~ "-" ~ day }
+yyyy = @{ year }
+yyyy_mm = @{ year ~ "-" ~ month }
+yyyy_mm_dd = @{ year ~ "-" ~ month ~ "-" ~ day }
 
-date = { yyyy | yyyy_mm | yyyy_mm_dd }
+date = ${ yyyy | yyyy_mm | yyyy_mm_dd }
 
 
 /* Tag Patterns */
@@ -47,9 +47,9 @@ tag = @{
 
 
 /* expression operators */
-primary = _{ integer | string | date | "(" ~ expr ~ ")"}
+primary = _{ integer | string | date | tag | ( "(" ~ expr ~ ")" )}
 atom = _{ not? ~ primary }
-expr = { atom ~ (binary_op ~ atom) *}
+expr = { PATTERN_WHITE_SPACE* ~ atom ~ (PATTERN_WHITE_SPACE* ~ binary_op ~ PATTERN_WHITE_SPACE* ~ atom)* ~ PATTERN_WHITE_SPACE* }
 
 binary_op = _{ 
     equals | not_equals | contains | greater | greater_eq | less | less_eq
@@ -73,3 +73,6 @@ and = { "&&" }
 
 // 3rd order precedence
 or = { "||" }
+
+/* Query */
+query = _{ SOI ~ expr ~ EOI }
