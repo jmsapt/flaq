@@ -301,7 +301,7 @@ mod test_parsing {
     use super::*;
 
     fn expr(query: &str) -> Expr {
-        let grammer = dbg!(QueryParser::parse_grammer(query)).unwrap();
+        let grammer = QueryParser::parse_grammer(query).unwrap();
         build(grammer).unwrap()
     }
 
