@@ -295,7 +295,8 @@ impl FromStr for Date {
     }
 }
 
-#[cfg(test)]
+#[cfg(test)] 
+#[rustfmt::skip]
 mod test_parsing {
     use super::*;
 
@@ -310,6 +311,7 @@ mod test_parsing {
         v.set("TITLE", vec!["Feather"]);
         v.set("ARTIST", vec!["Nujabes", "Cise Starr"]);
         v.set("DATE", vec!["2005"]);
+        v.set("TRACKNUMBER", vec!["1"]);
 
         v
     }
@@ -389,5 +391,110 @@ mod test_parsing {
         let expr_act = expr(query);
         assert_eq!(expr_exp, expr_act);
         assert_val!(expr_act.eval(&env()).unwrap(), false);
+    }
+    #[test]
+    fn const_expr_6() {
+        let query = stringify!(1 <= 2);
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Integer(1))),
+            op: BinaryOperator::LessEq,
+            rhs: Box::new(Expr::Value(Value::Integer(2))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
+    #[test]
+    fn const_expr_7() {
+        let query = stringify!(1 < 2);
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Integer(1))),
+            op: BinaryOperator::Less,
+            rhs: Box::new(Expr::Value(Value::Integer(2))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
+    #[test]
+    fn const_expr_8() {
+        let query = stringify!(1 >= 2);
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Integer(1))),
+            op: BinaryOperator::GreaterEq,
+            rhs: Box::new(Expr::Value(Value::Integer(2))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), false);
+    }
+    #[test]
+    fn const_expr_9() {
+        let query = stringify!(1 > 2);
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Integer(1))),
+            op: BinaryOperator::Greater,
+            rhs: Box::new(Expr::Value(Value::Integer(2))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), false);
+    }
+
+    #[test]
+    fn env_expr_1() {
+        let query = stringify!(Tracknumber == 1);
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Tag(FlacTags::Tracknumber))),
+            op: BinaryOperator::Equals,
+            rhs: Box::new(Expr::Value(Value::Integer(1))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
+    #[test]
+    fn env_expr_2() {
+        let query = stringify!(Artist == "Nujabes");
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Tag(FlacTags::Artist))),
+            op: BinaryOperator::Equals,
+            rhs: Box::new(Expr::Value(Value::String(vec!["Nujabes".to_string()]))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
+    #[test]
+    fn env_expr_3() {
+        let query = stringify!(Artist != "Greg");
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Tag(FlacTags::Artist))),
+            op: BinaryOperator::NotEquals,
+            rhs: Box::new(Expr::Value(Value::String(vec!["Greg".to_string()]))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
+    #[test]
+    fn env_expr_4() {
+        let query = stringify!(Artist ?= "jabes");
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Tag(FlacTags::Artist))),
+            op: BinaryOperator::Contains,
+            rhs: Box::new(Expr::Value(Value::String(vec!["jabes".to_string()]))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
     }
 }
