@@ -73,3 +73,100 @@ pub fn list_detailed(path: &Path, tag: &VorbisComment) {
         println!("{:6}{}:{:?}", "", k.as_str().blue(), tag.comments[k]);
     });
 }
+
+#[cfg(test)]
+mod test {
+    use metaflac::block::VorbisComment;
+
+    use super::*;
+    use crate::tags::FlacTags;
+
+    #[test]
+    fn test_set_tags() {
+        let mut actual = VorbisComment::new();
+        let mut expected = VorbisComment::new();
+
+        actual.set("TITLE", vec!["Foo", "Bar"]);
+        actual.set("ARTIST", vec!["Eksheke"]);
+        set_tags(&mut actual, FlacTags::Title, vec!["Boo".to_string()]);
+
+        expected.set("TITLE", vec!["Boo"]);
+        expected.set("ARTIST", vec!["Eksheke"]);
+
+        assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn test_append_tags_1() {
+        let mut actual = VorbisComment::new();
+        let mut expected = VorbisComment::new();
+
+        actual.set("TITLE", vec!["Foo", "Bar"]);
+        actual.set("ARTIST", vec!["Eksheke"]);
+        append_tags(&mut actual, FlacTags::Title, vec!["Boo".to_string()]);
+
+        expected.set("TITLE", vec!["Foo", "Bar", "Boo"]);
+        expected.set("ARTIST", vec!["Eksheke"]);
+
+        assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn test_append_tags_2() {
+        let mut actual = VorbisComment::new();
+        let mut expected = VorbisComment::new();
+
+        actual.set("ARTIST", vec!["Eksheke"]);
+        append_tags(&mut actual, FlacTags::Title, vec!["Boo".to_string()]);
+
+        expected.set("TITLE", vec!["Boo"]);
+        expected.set("ARTIST", vec!["Eksheke"]);
+
+        assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn test_clean_tags() {
+        let mut actual = VorbisComment::new();
+        let mut expected = VorbisComment::new();
+
+        actual.set("TITLE", vec!["Foo", "Foo"]);
+        actual.set("ARTIST", vec!["Eksheke"]);
+        clean_tags(&mut actual);
+
+        expected.set("TITLE", vec!["Foo"]);
+        expected.set("ARTIST", vec!["Eksheke"]);
+
+        assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn test_clean_non_standard_tags() {
+        let mut actual = VorbisComment::new();
+        let mut expected = VorbisComment::new();
+
+        actual.set("TITLE", vec!["Foo"]);
+        actual.set("EKSHEKE", vec!["Foo", "Foo"]);
+        actual.set("ARTIST", vec!["Eksheke"]);
+        clean_non_standard_tags(&mut actual);
+
+        expected.set("TITLE", vec!["Foo"]);
+        expected.set("ARTIST", vec!["Eksheke"]);
+
+        assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn test_delete_tags() {
+        let mut actual = VorbisComment::new();
+        let mut expected = VorbisComment::new();
+
+        actual.set("TITLE", vec!["Foo", "Foo"]);
+        actual.set("ARTIST", vec!["Eksheke"]);
+        delete_tags(&mut actual, FlacTags::Title);
+
+        expected.set("ARTIST", vec!["Eksheke"]);
+
+        assert_eq!(actual, expected)
+    }
+}
