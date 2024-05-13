@@ -1,10 +1,6 @@
 #![allow(dead_code)]
 
-use std::{
-    error::Error,
-    fs::{create_dir, create_dir_all},
-    path::PathBuf,
-};
+use std::{error::Error, fs::create_dir_all, path::PathBuf};
 
 use clap::{CommandFactory, ValueEnum};
 use clap_complete::{generate_to, Shell};
