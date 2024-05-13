@@ -18,6 +18,7 @@ use std::option::IntoIter;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::{clone, fs};
+
 // modules
 mod cli;
 mod operations;
@@ -55,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(query_str) = args.arguments.query {
         // build expression
         let grammer = QueryParser::parse_grammer(&query_str)?;
-        let expression = dbg!(build(grammer)?);
+        let expression = build(grammer)?;
 
         // evaulate against all files recursively
         let mut buffer = Vec::new();
@@ -96,9 +97,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         paths.iter_mut().for_each(|(tag, path)| {
             let mut meta = tag.vorbis_comments_mut();
             // Set, append, and delete are parsed as mutually exclusive
-            if dbg!(args.set) {
+            if args.set {
                 /* set */
-                set_tags(meta, field, dbg!(tags.to_owned()));
+                set_tags(meta, field, tags.to_owned());
             } else if args.append {
                 /* append */
                 append_tags(meta, field, tags.to_owned());

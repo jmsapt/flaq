@@ -64,7 +64,7 @@ impl QueryParser {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinaryOperator {
     Equals,
     NotEquals,
@@ -126,7 +126,7 @@ impl BinaryOperator {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     // Operations
     BinOp {
@@ -174,6 +174,7 @@ pub fn build(pairs: Pairs<Rule>) -> Result<Expr, QueryParseError> {
         .map_infix(|lhs, op, rhs| {
             let op = match op.as_rule() {
                 Rule::equals => BinaryOperator::Equals,
+                Rule::not_equals => BinaryOperator::NotEquals,
                 Rule::contains => BinaryOperator::Contains,
                 Rule::greater => BinaryOperator::Greater,
                 Rule::greater_eq => BinaryOperator::GreaterEq,
@@ -291,5 +292,102 @@ impl FromStr for Date {
             (Some(y), Some(m), Some(d)) => Date::YearMonthDay(y?, m?, d?),
             (_, _, _) => Err(QueryParseError::InvalidDate(s.to_string()))?,
         })
+    }
+}
+
+#[cfg(test)]
+mod test_parsing {
+    use super::*;
+
+    fn expr(query: &str) -> Expr {
+        let grammer = dbg!(QueryParser::parse_grammer(query)).unwrap();
+        build(grammer).unwrap()
+    }
+
+    fn env() -> VorbisComment {
+        let mut v = VorbisComment::new();
+
+        v.set("TITLE", vec!["Feather"]);
+        v.set("ARTIST", vec!["Nujabes", "Cise Starr"]);
+        v.set("DATE", vec!["2005"]);
+
+        v
+    }
+
+    macro_rules! assert_val {
+        ($val:expr, $x:expr) => {{
+            match $val {
+                Value::Boolean(b) => assert_eq!(b, $x),
+                _ => panic!("Not a boolean value"),
+            }
+        }};
+    }
+
+    #[test]
+    fn const_expr_1() {
+        let query = stringify!("Foo" == "Foo");
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::String(vec!["Foo".to_string()]))),
+            op: BinaryOperator::Equals,
+            rhs: Box::new(Expr::Value(Value::String(vec!["Foo".to_string()]))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
+
+    #[test]
+    fn const_expr_2() {
+        let query = stringify!(10 == 10);
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Integer(10))),
+            op: BinaryOperator::Equals,
+            rhs: Box::new(Expr::Value(Value::Integer(10))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
+    // fix date formats
+    // #[test]
+    // fn const_expr_3() {
+    //     let query = stringify!(1999 - 01 - 01 == 1999 - 01 - 01);
+    //     let expr_exp = Expr::BinOp {
+    //         lhs: Box::new(Expr::Value(Value::Date(Date::YearMonthDay(1999, 1, 1)))),
+    //         op: BinaryOperator::Equals,
+    //         rhs: Box::new(Expr::Value(Value::Date(Date::YearMonthDay(1999, 1, 1)))),
+    //     };
+
+    //     let expr_act = expr(query);
+    //     assert_eq!(expr_exp, expr_act);
+    //     assert_val!(expr_act.eval(&env()).unwrap(), true);
+    // }
+    #[test]
+    fn const_expr_4() {
+        let query = stringify!(1 != 2);
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Integer(1))),
+            op: BinaryOperator::NotEquals,
+            rhs: Box::new(Expr::Value(Value::Integer(2))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
+    #[test]
+    fn const_expr_5() {
+        let query = stringify!("Foo" == "Bar");
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::String(vec!["Foo".to_string()]))),
+            op: BinaryOperator::Equals,
+            rhs: Box::new(Expr::Value(Value::String(vec!["Bar".to_string()]))),
+        };
+
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), false);
     }
 }
