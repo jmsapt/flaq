@@ -90,7 +90,59 @@ Arguments:
 ```
 
 ## Queries
-Coming soon...
+A query is is a string of operations that is evaulated against every supplied file, excluding those files that don't
+satisfy the query.
+
+A query is a combination of variables, literals and operators. The query is an expression that can be any other combination
+of expressions, but it must finally evaulate to a boolean.
+
+### Variables
+Any standard tag can be used as an variable. That variable will be replaced by the list of matching tags for each
+respective file. The variables are used by their full tag name which is case-insensitive (e.g. `Title`, `tracknumber`, `ArtISt`
+are all valid uses of variables).
+
+A query will error if the a required variable on any provided file is unset.
+
+- Date
+    - The first tag for the `date` tag, that must be stored in the format `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`. Note that 
+    date literals for querys are prefixed by `d`, but stored dates are not
+- Tracknumber
+    - The first tag for the `tracknumber` tag, that must be parsable as a unsigned 32-bit integer.
+    - If tracknumber is unset, or not parsable, this will error and casue the query to fail
+- Other Tags
+    - All other tags will be subsituted for the list of strings that are set for that respective tag
+
+### Literals
+- String Literal `"<string>"`
+    - String literals must be wrapped in quoatation marks, escape characters (including for additional quoatation marks)
+    are allowed. Strings can include any unicode characters
+    - For example; `"Casiopea"`, `"瀬葉淳"`, `"Some \"Escape Characters\""`
+- Integer Literal `<num>`
+    - Integer literals must parsable as a 32-bit unsigned integer (positive integers inclusive of 0)
+    - For example; `10`, `0`, `1234`
+- Date Literal (`d<YYYY>`, `d<YYYY>-<MM>`, or `d<YYYY>-<MM>-<DD>`
+    - Dates must be prefix by a `d` and can be given as either year, year-month, or year-month-day forms.
+    - For example; `d1980`, `d2001-01`, `d1192-03-12`
+
+### Operators
+#### Comparative Operators
+Compare any 2 pairs of matching types. Evaluates to a boolean expresion.
+- `==` Equals
+- `?=` Conatains
+- `!=` Not Equals
+
+#### Numeric Comparative Operators 
+Operates on any 2 dates or integers. Evaluates to a boolean expression.
+- `>` Greater Than
+- `>=` Greater Than or Equals
+- `<` Less Than
+- `<=` Less Than or Equals
+
+#### Logical Operators
+Operates on 2 boolean expressions (or 1 for logical not). Evaulates to a boolean expression.
+- `!`
+- `&&`
+- `||`
 
 ## The Standard
 The standard, listed below, is not super rigid with room for ambiguity. This program follow this standard

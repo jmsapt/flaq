@@ -21,7 +21,7 @@ yyyy = @{ year }
 yyyy_mm = @{ year ~ "-" ~ month }
 yyyy_mm_dd = @{ year ~ "-" ~ month ~ "-" ~ day }
 
-date = ${ yyyy | yyyy_mm | yyyy_mm_dd }
+date = ${ ^"d" ~ (yyyy_mm_dd | yyyy_mm | yyyy) }
 
 
 /* Tag Patterns */
@@ -47,7 +47,7 @@ tag = @{
 
 
 /* expression operators */
-primary = _{ integer | string | date | tag | ( "(" ~ expr ~ ")" )}
+primary = _{ date | integer | string | tag | ( "(" ~ expr ~ ")" )}
 atom = _{ not? ~ primary }
 expr = { PATTERN_WHITE_SPACE* ~ atom ~ (PATTERN_WHITE_SPACE* ~ binary_op ~ PATTERN_WHITE_SPACE* ~ atom)* ~ PATTERN_WHITE_SPACE* }
 
