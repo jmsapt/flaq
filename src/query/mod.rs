@@ -270,7 +270,7 @@ impl From<Date> for u32 {
 impl FromStr for Date {
     type Err = QueryParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut x = s.split('-');
+        let mut x = s.strip_prefix('d').unwrap().split('-');
 
         let y = x.next().map(|y| {
             y.parse()
@@ -286,9 +286,9 @@ impl FromStr for Date {
         });
 
         Ok(match (y, m, d) {
-            (Some(y), _, _) => Date::Year(y?),
-            (Some(y), Some(m), _) => Date::YearMonth(y?, m?),
             (Some(y), Some(m), Some(d)) => Date::YearMonthDay(y?, m?, d?),
+            (Some(y), Some(m), _) => Date::YearMonth(y?, m?),
+            (Some(y), _, _) => Date::Year(y?),
             (_, _, _) => Err(QueryParseError::InvalidDate(s.to_string()))?,
         })
     }
@@ -352,19 +352,19 @@ mod test_parsing {
         assert_val!(expr_act.eval(&env()).unwrap(), true);
     }
     // fix date formats
-    // #[test]
-    // fn const_expr_3() {
-    //     let query = stringify!(1999 - 01 - 01 == 1999 - 01 - 01);
-    //     let expr_exp = Expr::BinOp {
-    //         lhs: Box::new(Expr::Value(Value::Date(Date::YearMonthDay(1999, 1, 1)))),
-    //         op: BinaryOperator::Equals,
-    //         rhs: Box::new(Expr::Value(Value::Date(Date::YearMonthDay(1999, 1, 1)))),
-    //     };
+    #[test]
+    fn const_expr_3() {
+        let query = stringify!(d1999-01-01 == d1999-01-01);
+        let expr_exp = Expr::BinOp {
+            lhs: Box::new(Expr::Value(Value::Date(Date::YearMonthDay(1999, 1, 1)))),
+            op: BinaryOperator::Equals,
+            rhs: Box::new(Expr::Value(Value::Date(Date::YearMonthDay(1999, 1, 1)))),
+        };
 
-    //     let expr_act = expr(query);
-    //     assert_eq!(expr_exp, expr_act);
-    //     assert_val!(expr_act.eval(&env()).unwrap(), true);
-    // }
+        let expr_act = expr(query);
+        assert_eq!(expr_exp, expr_act);
+        assert_val!(expr_act.eval(&env()).unwrap(), true);
+    }
     #[test]
     fn const_expr_4() {
         let query = stringify!(1 != 2);
