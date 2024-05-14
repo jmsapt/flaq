@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let _file = generate_to(shell, &mut cmd, BINARY_NAME, &scripts_target)?;
         #[cfg(debug_assertions)]
         {
-            println!("cargo:warning=Autocomplete script generated at {file:?}");
+            println!("cargo:warning=Autocomplete script generated at {_file:?}");
         }
     }
 
